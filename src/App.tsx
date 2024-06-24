@@ -2,6 +2,8 @@ import { ConfigProvider } from "antd";
 
 import lightTheme from "@/themes/light.json";
 
+import { Payments } from "./pages/Payments";
+
 function App() {
   return (
     <ConfigProvider
@@ -12,7 +14,7 @@ function App() {
         components: lightTheme.components,
       }}
     >
-      Hello world!
+      <Payments />
     </ConfigProvider>
   );
 }
