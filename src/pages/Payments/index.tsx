@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+
+import { manualPaymentSchema, ManualPaymentType } from "@/dtos";
 
 import { usaStates } from "@/utils";
-
-import { AddressType, CardType, ContactType, PaymentType } from "@/types";
 
 import { Header, Sidebar } from "@/components";
 import {
@@ -18,100 +18,112 @@ import {
   Select,
   Typography,
   message,
-  theme,
 } from "antd";
 
 import styles from "./styles.module.scss";
+
+import { CreditCardOutlined } from "@ant-design/icons";
 
 const { Content } = Layout;
 
 const CURRENT_FUNDS = 500;
 
 export function Payments() {
-  const { token } = theme.useToken();
-
-  const [payment, setPayment] = useState({} as PaymentType);
-
-  const [contact, setContact] = useState({} as ContactType);
-  const [mainAddress, setMainAddress] = useState({
-    addresses: {
-      1: "",
-      2: "",
-    },
-  } as unknown as AddressType);
-  const [card, setCard] = useState({} as CardType);
-  const [billingAddress, setBillingAddress] = useState({
-    addresses: {
-      1: "",
-      2: "",
-    },
-  } as unknown as AddressType);
+  const [form] = Form.useForm<ManualPaymentType>();
+  const fields = Form.useWatch([], form);
 
   const [paymentMethod, setPaymentMethod] = useState<"card" | "ach">("card");
   const [sameAddress, setSameAddress] = useState(false);
+  const [isSubmittable, setIsSubmittable] = useState(false);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
   const states = usaStates.map(state => ({
     label: state.name,
     value: state.name.toLowerCase(),
   }));
 
-  async function handleSubmit() {
-    const data = {
-      payment,
-      paymentMethod,
-      contact,
-      mainAddress,
-      card,
-      billingAddress,
-    };
-
+  async function handleSubmit(formData: ManualPaymentType) {
     try {
+      console.log({ formData });
+      const { billingAddress, homeAddress, payment } = formData;
+
+      const data: ManualPaymentType = {
+        ...formData,
+        billingAddress: sameAddress ? homeAddress : billingAddress,
+      };
+
       if (Number(payment.amount) > CURRENT_FUNDS) {
         throw new Error("Insufficient Funds");
       }
 
-      console.log({ data });
+      const { data: parsedData } = await manualPaymentSchema.safeParseAsync(
+        data
+      );
+
+      console.log({ parsedData });
     } catch (error) {
       error instanceof Error && message.error(`Error: ${error.message}`);
     }
   }
 
+  useEffect(() => {
+    async function formValidation() {
+      try {
+        await form.validateFields();
+        setIsSubmittable(true);
+      } catch (error) {
+        setIsSubmittable(false);
+      }
+    }
+
+    formValidation();
+  }, [form, fields]);
+
+  useLayoutEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <Layout draggable={false} className={styles.layout}>
       <Header />
 
-      <Layout hasSider className={styles.contentContainer}>
+      <Layout
+        hasSider
+        className={styles.contentContainer}
+        style={{
+          maxHeight: windowHeight - 48,
+        }}
+      >
         <Sidebar />
 
         <Content className={styles.content}>
-          {/* FIX BREADCRUMB SPACINGS */}
           <Breadcrumb
             items={[
               {
-                title: (
-                  <Typography.Link
-                    href="/payments"
-                    style={{ color: token.Breadcrumb?.itemColor }}
-                  >
-                    Payments
-                  </Typography.Link>
-                ),
+                href: "/payments",
+                title: "Payments",
               },
               {
-                title: (
-                  <Typography.Link
-                    href="/create-payment"
-                    style={{ color: token.Breadcrumb?.itemColor }}
-                  >
-                    Create a Payment
-                  </Typography.Link>
-                ),
+                href: "/create-payment",
+                title: "Create a Payment",
               },
               {
+                href: "matimme",
                 title: "Accept a Manual Payment",
               },
             ]}
             className={styles.breadcrumb}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              height: "fit-content",
+              width: "100%",
+            }}
           ></Breadcrumb>
 
           <Layout className={styles.rootFormContainer}>
@@ -123,82 +135,123 @@ export function Payments() {
               Accept a Manual Payment
             </Typography.Title>
 
-            <Flex gap={24} className={styles.formContainer}>
-              <Form
-                layout="vertical"
-                className={styles.basicForm}
-                style={{ display: "flex", flexDirection: "column", flex: 1 }}
-              >
-                <Form.Item htmlFor="amount" label="Amount">
+            <Form
+              form={form}
+              layout="vertical"
+              initialValues={{ feeMode: "merchant" }}
+              onFinish={data => handleSubmit(data)}
+              className={styles.formContainer}
+              requiredMark={false}
+            >
+              <Flex vertical flex={1} className={styles.paymentDetailsForm}>
+                <Form.Item
+                  hasFeedback
+                  label="Amount"
+                  htmlFor="paymentAmount"
+                  name={["payment", "amount"]}
+                  rules={[
+                    { required: true, message: "Please enter an amount." },
+                  ]}
+                >
                   <InputNumber
-                    name="amount"
+                    id="paymentAmount"
                     placeholder="00.00"
                     addonBefore={"$"}
-                    value={payment.amount}
+                    value={form.getFieldValue("amount")}
                     onChange={value =>
-                      setPayment(prev => ({
-                        ...prev,
-                        amount: value,
-                      }))
+                      form.setFieldValue(["payment", "amount"], value)
                     }
                     style={{ width: "100%" }}
                   />
                 </Form.Item>
 
-                <Form.Item label="Fee mode">
+                <Form.Item
+                  hasFeedback
+                  label="Fee mode"
+                  name={["payment", "feeMode"]}
+                  rules={[
+                    { required: true, message: "Please select a fee mode." },
+                  ]}
+                >
                   <Flex
                     gap={16}
                     style={{ padding: "0.625rem 0", marginTop: "0.25rem" }}
                   >
                     <Checkbox
                       className={styles.checkbox}
-                      checked={payment.feeMode === "merchant"}
-                      onClick={() =>
-                        setPayment(prev => ({ ...prev, feeMode: "merchant" }))
-                      }
+                      checked={form.getFieldValue("feeMode") === "merchant"}
+                      onClick={() => form.setFieldValue("feeMode", "merchant")}
                     >
                       Merchant Pays Fee
                     </Checkbox>
 
                     <Checkbox
                       className={styles.checkbox}
-                      checked={payment.feeMode === "payor"}
-                      onClick={() =>
-                        setPayment(prev => ({ ...prev, feeMode: "payor" }))
-                      }
+                      checked={form.getFieldValue("feeMode") === "payor"}
+                      onClick={() => form.setFieldValue("feeMode", "payor")}
                     >
                       Payor Pays Fee
                     </Checkbox>
                   </Flex>
                 </Form.Item>
 
-                <Form.Item htmlFor="title" label="Payment Name">
+                <Form.Item
+                  hasFeedback
+                  label="Payment Name"
+                  htmlFor="paymentName"
+                  name={["payment", "name"]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter a name for your payment.",
+                    },
+                  ]}
+                >
                   <Input
-                    name="title"
+                    id="paymentName"
                     placeholder="Name of the item or service..."
-                  />
-                </Form.Item>
-
-                <Form.Item htmlFor="description" label="Payment Description">
-                  <Input.TextArea
-                    rows={4}
-                    name="description"
-                    placeholder="Description of the item or service..."
+                    value={form.getFieldValue("name")}
+                    onChange={event =>
+                      form.setFieldValue("name", event.target.value)
+                    }
                   />
                 </Form.Item>
 
                 <Form.Item
-                  htmlFor="accountNumber"
-                  required={false}
+                  hasFeedback
+                  label="Payment Description"
+                  htmlFor="paymentDescription"
+                  name={["payment", "description"]}
+                >
+                  <Input.TextArea
+                    rows={4}
+                    id="paymentDescription"
+                    placeholder="Description of the item or service..."
+                    value={form.getFieldValue("description")}
+                    onChange={event =>
+                      form.setFieldValue("description", event.target.value)
+                    }
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  hasFeedback
                   label="Account Number"
+                  htmlFor="accountNumber"
+                  name={["payment", "accountNumber"]}
+                  required={false}
                   style={{ marginBottom: 0 }}
                 >
                   <Input
-                    name="accountNumber"
+                    id="accountNumber"
                     placeholder="A number that can be used to reference the payment"
+                    value={form.getFieldValue("accountNumber")}
+                    onChange={event =>
+                      form.setFieldValue("accountNumber", event.target.value)
+                    }
                   />
                 </Form.Item>
-              </Form>
+              </Flex>
 
               <Card
                 title={
@@ -219,10 +272,7 @@ export function Payments() {
                   <Button
                     type={(paymentMethod === "card" && "primary") || "text"}
                     onClick={() => setPaymentMethod("card")}
-                    style={{
-                      width: "100%",
-                      boxShadow: "none",
-                    }}
+                    className={styles.selectionButton}
                   >
                     Card
                   </Button>
@@ -230,18 +280,15 @@ export function Payments() {
                   <Button
                     type={(paymentMethod === "ach" && "primary") || "text"}
                     onClick={() => setPaymentMethod("ach")}
-                    style={{
-                      width: "100%",
-                      boxShadow: "none",
-                    }}
+                    className={styles.selectionButton}
                   >
                     ACH
                   </Button>
                 </Flex>
 
-                <Form className={styles.paymentMethodForm}>
+                <Flex className={styles.paymentMethodForm}>
                   {paymentMethod === "card" ? (
-                    <Flex vertical gap={24}>
+                    <>
                       <Flex vertical gap={4}>
                         <Typography.Title level={5} className={styles.label}>
                           Contact Information
@@ -249,48 +296,75 @@ export function Payments() {
 
                         <Flex vertical gap={8}>
                           <Flex gap={8}>
-                            <Input
-                              value={contact.name}
-                              onChange={event =>
-                                setContact(prev => ({
-                                  ...prev,
-                                  name: event.target.value,
-                                }))
-                              }
-                              placeholder="First name"
-                            />
-                            <Input
-                              value={contact.lastName}
-                              onChange={event =>
-                                setContact(prev => ({
-                                  ...prev,
-                                  lastName: event.target.value,
-                                }))
-                              }
-                              placeholder="Last name"
-                            />
+                            <Form.Item
+                              hasFeedback
+                              noStyle
+                              name={["contact", "firstName"]}
+                              rules={[{ required: true }]}
+                            >
+                              <Input
+                                autoCapitalize="words"
+                                value={form.getFieldValue("firstName")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "firstName",
+                                    event.target.value
+                                  )
+                                }
+                                placeholder="First name"
+                              />
+                            </Form.Item>
+
+                            <Form.Item
+                              hasFeedback
+                              noStyle
+                              name={["contact", "lastName"]}
+                              rules={[{ required: true }]}
+                            >
+                              <Input
+                                // addonAfter={<XCircleOutlined />}
+                                autoCapitalize="words"
+                                value={form.getFieldValue("lastName")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "lastName",
+                                    event.target.value
+                                  )
+                                }
+                                placeholder="Last name"
+                              />
+                            </Form.Item>
                           </Flex>
 
-                          <Input
-                            value={contact.email}
-                            onChange={event =>
-                              setContact(prev => ({
-                                ...prev,
-                                email: event.target.value,
-                              }))
-                            }
-                            placeholder="Email address"
-                          />
-                          <Input
-                            value={contact.phone}
-                            onChange={event =>
-                              setContact(prev => ({
-                                ...prev,
-                                phone: event.target.value,
-                              }))
-                            }
-                            placeholder="Phone number (optional)"
-                          />
+                          <Form.Item
+                            hasFeedback
+                            noStyle
+                            name={["contact", "email"]}
+                            rules={[{ required: true }]}
+                          >
+                            <Input
+                              placeholder="Email address"
+                              value={form.getFieldValue("email")}
+                              onChange={event =>
+                                form.setFieldValue("email", event.target.value)
+                              }
+                            />
+                          </Form.Item>
+
+                          <Form.Item
+                            hasFeedback
+                            noStyle
+                            name={["contact", "phone"]}
+                            rules={[{ required: true }]}
+                          >
+                            <Input
+                              placeholder="Phone number (optional)"
+                              value={form.getFieldValue("phone")}
+                              onChange={event =>
+                                form.setFieldValue("phone", event.target.value)
+                              }
+                            />
+                          </Form.Item>
                         </Flex>
                       </Flex>
 
@@ -300,70 +374,86 @@ export function Payments() {
                         </Typography.Title>
 
                         <Flex vertical gap={8}>
-                          <Input
-                            value={mainAddress.addresses["1"]}
-                            onChange={event =>
-                              setMainAddress(prev => ({
-                                ...prev,
-                                addresses: {
-                                  ...prev.addresses,
-                                  1: event.target.value,
-                                },
-                              }))
-                            }
-                            placeholder="Address line 1"
-                          />
-                          <Input
-                            value={mainAddress.addresses["2"]}
-                            onChange={event =>
-                              setMainAddress(prev => ({
-                                ...prev,
-                                addresses: {
-                                  ...prev.addresses,
-                                  2: event.target.value,
-                                },
-                              }))
-                            }
-                            placeholder="Address line 2 (optional)"
-                          />
+                          <Form.Item
+                            hasFeedback
+                            noStyle
+                            name={["homeAddress", "addresses", "line1"]}
+                            rules={[{ required: true }]}
+                          >
+                            <Input
+                              placeholder="Address line 1"
+                              value={form.getFieldValue("line1")}
+                              onChange={event =>
+                                form.setFieldValue("line1", event.target.value)
+                              }
+                            />
+                          </Form.Item>
+
+                          <Form.Item
+                            hasFeedback
+                            noStyle
+                            name={["homeAddress", "addresses", "line2"]}
+                          >
+                            <Input
+                              placeholder="Address line 2 (optional)"
+                              value={form.getFieldValue("line2")}
+                              onChange={event =>
+                                form.setFieldValue("line2", event.target.value)
+                              }
+                            />
+                          </Form.Item>
 
                           <Flex gap={8}>
-                            <Input
-                              placeholder="City"
-                              value={mainAddress.city}
-                              onChange={event =>
-                                setMainAddress(prev => ({
-                                  ...prev,
-                                  city: event.target.value,
-                                }))
-                              }
-                              style={{ flex: 1 }}
-                            />
+                            <Form.Item
+                              hasFeedback
+                              noStyle
+                              name={["homeAddress", "city"]}
+                              rules={[{ required: true }]}
+                            >
+                              <Input
+                                placeholder="City"
+                                value={form.getFieldValue("city")}
+                                onChange={event =>
+                                  form.setFieldValue("city", event.target.value)
+                                }
+                                style={{ flex: 1 }}
+                              />
+                            </Form.Item>
 
-                            <Select
-                              placeholder="State"
-                              options={states}
-                              value={mainAddress.state}
-                              onChange={value =>
-                                setMainAddress(prev => ({
-                                  ...prev,
-                                  state: value,
-                                }))
-                              }
-                              style={{ flex: 1 }}
-                            />
+                            <Form.Item
+                              noStyle
+                              name={["homeAddress", "state"]}
+                              rules={[{ required: true }]}
+                            >
+                              <Select
+                                placeholder="State"
+                                options={states}
+                                value={form.getFieldValue("state")}
+                                onChange={value =>
+                                  form.setFieldValue("state", value)
+                                }
+                                style={{ flex: 1 }}
+                              />
+                            </Form.Item>
 
-                            <Input
-                              placeholder="Zipcode"
-                              value={mainAddress.zipcode}
-                              onChange={event =>
-                                setMainAddress(prev => ({
-                                  ...prev,
-                                  zipcode: event.target.value,
-                                }))
-                              }
-                              style={{ flex: 1 }}
-                            />
+                            <Form.Item
+                              hasFeedback
+                              noStyle
+                              name={["homeAddress", "zipcode"]}
+                              rules={[{ required: true }]}
+                            >
+                              <Input
+                                placeholder="Zipcode"
+                                value={form.getFieldValue("zipcode")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "zipcode",
+                                    event.target.value
+                                  )
+                                }
+                                style={{ flex: 1 }}
+                              />
+                            </Form.Item>
                           </Flex>
                         </Flex>
                       </Flex>
@@ -374,48 +464,80 @@ export function Payments() {
                         </Typography.Title>
 
                         <Flex vertical gap={8}>
-                          <Input
-                            value={card.name}
-                            onChange={event =>
-                              setCard(prev => ({
-                                ...prev,
-                                name: event.target.value,
-                              }))
-                            }
-                            placeholder="Name on card"
-                          />
+                          <Form.Item
+                            hasFeedback
+                            noStyle
+                            required
+                            name={["card", "name"]}
+                            rules={[{ required: true }]}
+                          >
+                            <Input
+                              placeholder="Name on card"
+                              value={form.getFieldValue("name")}
+                              onChange={event =>
+                                form.setFieldValue("name", event.target.value)
+                              }
+                            />
+                          </Form.Item>
 
                           <Flex gap={8}>
-                            <Input
-                              value={card.number}
-                              onChange={event =>
-                                setCard(prev => ({
-                                  ...prev,
-                                  number: event.target.value,
-                                }))
-                              }
-                              placeholder="Card number"
-                            />
-                            <Input
-                              value={card.expirationDate}
-                              onChange={event =>
-                                setCard(prev => ({
-                                  ...prev,
-                                  expirationDate: event.target.value,
-                                }))
-                              }
-                              placeholder="MM/YYYY"
-                            />
-                            <Input
-                              value={card.zipcode}
-                              onChange={event =>
-                                setCard(prev => ({
-                                  ...prev,
-                                  zipcode: event.target.value,
-                                }))
-                              }
-                              placeholder="Zipcode"
-                            />
+                            <Form.Item
+                              noStyle
+                              required
+                              name={["card", "number"]}
+                              rules={[{ required: true }]}
+                            >
+                              <Input
+                                placeholder="Card number"
+                                value={form.getFieldValue("number")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "number",
+                                    event.target.value
+                                  )
+                                }
+                                suffix={<CreditCardOutlined size={16} />}
+                              />
+                            </Form.Item>
+
+                            <Form.Item
+                              hasFeedback
+                              noStyle
+                              required
+                              name={["card", "expirationDate"]}
+                              rules={[{ required: true }, { max: 7 }]}
+                            >
+                              <Input
+                                placeholder="MM/YYYY"
+                                value={form.getFieldValue("expirationDate")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "expirationDate",
+                                    event.target.value
+                                  )
+                                }
+                                maxLength={7}
+                              />
+                            </Form.Item>
+
+                            <Form.Item
+                              hasFeedback
+                              noStyle
+                              required
+                              name={["card", "zipcode"]}
+                              rules={[{ required: true }]}
+                            >
+                              <Input
+                                placeholder="Zipcode"
+                                value={form.getFieldValue("zipcode")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "zipcode",
+                                    event.target.value
+                                  )
+                                }
+                              />
+                            </Form.Item>
                           </Flex>
                         </Flex>
                       </Flex>
@@ -435,70 +557,92 @@ export function Payments() {
 
                         {!sameAddress && (
                           <Flex vertical gap={8}>
-                            <Input
-                              placeholder="Address line 1"
-                              value={billingAddress.addresses["1"]}
-                              onChange={event =>
-                                setBillingAddress(prev => ({
-                                  ...prev,
-                                  addresses: {
-                                    ...prev.addresses,
-                                    1: event.target.value,
-                                  },
-                                }))
-                              }
-                            />
-                            <Input
-                              placeholder="Address line 2 (optional)"
-                              value={billingAddress.addresses["2"]}
-                              onChange={event =>
-                                setBillingAddress(prev => ({
-                                  ...prev,
-                                  addresses: {
-                                    ...prev.addresses,
-                                    2: event.target.value,
-                                  },
-                                }))
-                              }
-                            />
+                            <Form.Item
+                              hasFeedback
+                              noStyle
+                              name="billingAddress1"
+                              rules={[{ required: true }]}
+                            >
+                              <Input
+                                placeholder="Address line 1"
+                                value={form.getFieldValue("billingAddress1")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "billingAddress1",
+                                    event.target.value
+                                  )
+                                }
+                              />
+                            </Form.Item>
+                            <Form.Item noStyle name="billingAddress2">
+                              {" "}
+                              hasFeedback
+                              <Input
+                                placeholder="Address line 2 (optional)"
+                                value={form.getFieldValue("billingAddress2")}
+                                onChange={event =>
+                                  form.setFieldValue(
+                                    "billingAddress2",
+                                    event.target.value
+                                  )
+                                }
+                              />
+                            </Form.Item>
 
                             <Flex gap={8}>
-                              <Input
-                                placeholder="City"
-                                value={billingAddress.city}
-                                onChange={event =>
-                                  setBillingAddress(prev => ({
-                                    ...prev,
-                                    city: event.target.value,
-                                  }))
-                                }
-                                style={{ flex: 1 }}
-                              />
+                              <Form.Item
+                                hasFeedback
+                                noStyle
+                                name="billingCity"
+                                rules={[{ required: true }]}
+                              >
+                                <Input
+                                  placeholder="City"
+                                  value={form.getFieldValue("billingCity")}
+                                  onChange={event =>
+                                    form.setFieldValue(
+                                      "billingCity",
+                                      event.target.value
+                                    )
+                                  }
+                                  style={{ flex: 1 }}
+                                />
+                              </Form.Item>
 
-                              <Select
-                                placeholder="State"
-                                options={states}
-                                value={billingAddress.state}
-                                onChange={value =>
-                                  setBillingAddress(prev => ({
-                                    ...prev,
-                                    state: value,
-                                  }))
-                                }
-                                style={{ flex: 1 }}
-                              />
+                              <Form.Item
+                                noStyle
+                                name="billingState"
+                                rules={[{ required: true }]}
+                              >
+                                <Select
+                                  placeholder="State"
+                                  options={states}
+                                  value={form.getFieldValue("billingState")}
+                                  onChange={value =>
+                                    form.setFieldValue("billingState", value)
+                                  }
+                                  style={{ flex: 1 }}
+                                />
+                              </Form.Item>
 
-                              <Input
-                                placeholder="Zipcode"
-                                value={billingAddress.zipcode}
-                                onChange={event =>
-                                  setBillingAddress(prev => ({
-                                    ...prev,
-                                    zipcode: event.target.value,
-                                  }))
-                                }
-                                style={{ flex: 1 }}
-                              />
+                              <Form.Item
+                                hasFeedback
+                                noStyle
+                                name="billingZipcode"
+                                rules={[{ required: true }]}
+                              >
+                                <Input
+                                  placeholder="Zipcode"
+                                  value={form.getFieldValue("billingZipcode")}
+                                  onChange={event =>
+                                    form.setFieldValue(
+                                      "billingZipcode",
+                                      event.target.value
+                                    )
+                                  }
+                                  style={{ flex: 1 }}
+                                />
+                              </Form.Item>
                             </Flex>
                           </Flex>
                         )}
@@ -508,7 +652,7 @@ export function Payments() {
                         <Button
                           type="primary"
                           htmlType="submit"
-                          onClick={handleSubmit}
+                          disabled={!isSubmittable}
                           style={{ boxShadow: "none" }}
                         >
                           Submit Payment
@@ -540,13 +684,17 @@ export function Payments() {
                           </Typography.Text>
                         </Flex>
                       </Flex>
-                    </Flex>
+                    </>
                   ) : (
-                    "Coming soon!"
+                    <Flex align="center" justify="center">
+                      <Typography.Title level={5}>
+                        Coming soon!
+                      </Typography.Title>
+                    </Flex>
                   )}
-                </Form>
+                </Flex>
               </Card>
-            </Flex>
+            </Form>
           </Layout>
         </Content>
       </Layout>

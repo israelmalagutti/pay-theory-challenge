@@ -3,22 +3,21 @@
   display: flex;
   
   .contentContainer {
-    max-height: 100%;
-    
     display: flex;
     flex: 1;
 
-    overflow: hidden !important;
-
-    @media screen and (max-width: 1280px){
-      // Screen size - Header size
-      max-height: 672px;
-    }
-    
     .content {
       padding: 0.75rem 1.5rem 0;
 
       overflow-y: auto;
+
+      &::-webkit-scrollbar-button {
+        display: hidden;
+      }
+  
+      &::-webkit-scrollbar-track {
+        background: pink;
+    }
 
       .breadcrumb {
         padding: 0 0 0.75rem;
@@ -38,15 +37,17 @@
           display: flex;
           flex: 1;
 
-          .basicForm {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
+          gap: 1.5rem;
 
+          .paymentDetailsForm {
             .checkbox {
               display: flex;
               align-items: center;
               justify-content: center;
+            }
+
+            .inputOptional {
+              display: flex; gap: 0.125rem
             }
           }
 
@@ -62,10 +63,27 @@
     
               border: 1px solid #ececec;
               border-radius: 0.625rem;
+
+              .selectionButton {
+                width: "100%";
+                flex: 1;
+
+                box-shadow: none !important;
+
+                &:hover {
+                  background: transparent;
+                  border: 1px solid #ececec
+                }
+              }
             }
   
             .paymentMethodForm {
+              display: flex;
+              flex-direction: column;
+              flex: 1;
+
               padding-top: 1.5rem;
+              gap: 1.5rem;
               
               .label {
                 font-weight: 700;
