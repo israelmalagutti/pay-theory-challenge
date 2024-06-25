@@ -1,96 +1,68 @@
-.layout {
-  height: 100%;
-  display: flex;
+.rootFormContainer {
+  height: fit-content;
   
-  .contentContainer {
+  padding: 1.5rem;
+
+  .title {
+    font-weight: 700;
+  }
+
+  .formContainer {
+    max-height: 100%;
     display: flex;
     flex: 1;
 
-    .content {
-      padding: 0.75rem 1.5rem 0;
+    gap: 1.5rem;
 
-      overflow-y: auto;
-
-      &::-webkit-scrollbar-button {
-        display: hidden;
+    .paymentDetailsForm {
+      .checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-  
-      &::-webkit-scrollbar-track {
-        background: pink;
+
+      .inputOptional {
+        display: flex; gap: 0.125rem
+      }
     }
 
-      .breadcrumb {
-        padding: 0 0 0.75rem;
-      }
-    
-      .rootFormContainer {
-        height: fit-content;
-        
-        padding: 1.5rem;
+    .paymentCard{
+      display: flex;
+      flex-direction: column;
+      flex: 1;
 
-        .title {
-          font-weight: 700;
-        }
-  
-        .formContainer {
-          max-height: 100%;
-          display: flex;
+      .paymentSelectionContainer {
+        display: flex;
+        padding: 0.125rem;
+        gap: 0.125rem !important;
+
+        border: 1px solid #ececec;
+        border-radius: 0.625rem;
+
+        .selectionButton {
+          width: "100%";
           flex: 1;
 
-          gap: 1.5rem;
+          box-shadow: none !important;
 
-          .paymentDetailsForm {
-            .checkbox {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-
-            .inputOptional {
-              display: flex; gap: 0.125rem
-            }
+          &:hover {
+            background: transparent;
+            border: 1px solid #ececec
           }
+        }
+      }
 
-          .paymentCard{
-            display: flex;
-            flex-direction: column;
-            flex: 1;
+      .paymentMethodForm {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
 
-            .paymentSelectionContainer {
-              display: flex;
-              padding: 0.125rem;
-              gap: 0.125rem !important;
-    
-              border: 1px solid #ececec;
-              border-radius: 0.625rem;
-
-              .selectionButton {
-                width: "100%";
-                flex: 1;
-
-                box-shadow: none !important;
-
-                &:hover {
-                  background: transparent;
-                  border: 1px solid #ececec
-                }
-              }
-            }
-  
-            .paymentMethodForm {
-              display: flex;
-              flex-direction: column;
-              flex: 1;
-
-              padding-top: 1.5rem;
-              gap: 1.5rem;
-              
-              .label {
-                font-weight: 700;
-                margin-bottom: 0;
-              }
-            }
-          }
+        padding-top: 1.5rem;
+        gap: 1.5rem;
+        
+        .label {
+          font-weight: 700;
+          margin-bottom: 0;
         }
       }
     }

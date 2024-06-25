@@ -2,7 +2,8 @@ import { ConfigProvider } from "antd";
 
 import lightTheme from "@/themes/light.json";
 
-import { Payments } from "./pages/Payments";
+import { router } from "./routes";
+import { RouterProvider } from "react-router-dom";
 
 function App() {
   return (
@@ -14,7 +15,7 @@ function App() {
         components: lightTheme.components,
       }}
     >
-      <Payments />
+      <RouterProvider router={router} />
     </ConfigProvider>
   );
 }
