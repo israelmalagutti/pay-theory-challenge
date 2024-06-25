@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ZodError } from "zod";
 
 import { manualPaymentSchema, ManualPaymentType } from "@/dtos";
 
 import { usaStates } from "@/utils";
 
+import { SubmitButton } from "@/components";
 import {
   Button,
   Card,
@@ -21,18 +24,18 @@ import {
 import styles from "./styles.module.scss";
 
 import { CreditCardOutlined } from "@ant-design/icons";
-import { ZodError } from "zod";
 
 const CURRENT_FUNDS = 500;
 
 export function Payments() {
+  const navigate = useNavigate();
   const [form] = Form.useForm<ManualPaymentType>();
+
   const fields = Form.useWatch([], form);
 
   const [paymentMethod, setPaymentMethod] = useState<"card" | "ach">("card");
   const [sameAddress, setSameAddress] = useState(false);
 
-  const [isSubmittable, setIsSubmittable] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const states = usaStates.map(state => ({
@@ -59,7 +62,9 @@ export function Payments() {
       const parsedData = manualPaymentSchema.parse(data);
 
       console.log({ parsedData });
+
       message.success("Payment Succeeded");
+      navigate("/feedback");
     } catch (error) {
       error instanceof ZodError && console.error({ error });
 
@@ -68,19 +73,6 @@ export function Payments() {
       setIsSubmitting(false);
     }
   }
-
-  useEffect(() => {
-    async function formValidation() {
-      try {
-        await form.validateFields();
-        setIsSubmittable(true);
-      } catch (error) {
-        setIsSubmittable(false);
-      }
-    }
-
-    formValidation();
-  }, [form, fields]);
 
   return (
     <Layout className={styles.rootFormContainer}>
@@ -98,7 +90,6 @@ export function Payments() {
       >
         <Flex vertical flex={1} className={styles.paymentDetailsForm}>
           <Form.Item
-            hasFeedback
             label="Amount"
             htmlFor="paymentAmount"
             name={["payment", "amount"]}
@@ -117,7 +108,6 @@ export function Payments() {
           </Form.Item>
 
           <Form.Item
-            hasFeedback
             label="Fee mode"
             name={["payment", "feeMode"]}
             rules={[{ required: true, message: "Please select a fee mode." }]}
@@ -145,7 +135,6 @@ export function Payments() {
           </Form.Item>
 
           <Form.Item
-            hasFeedback
             label="Payment Name"
             htmlFor="paymentName"
             name={["payment", "name"]}
@@ -165,7 +154,6 @@ export function Payments() {
           </Form.Item>
 
           <Form.Item
-            hasFeedback
             label="Payment Description"
             htmlFor="paymentDescription"
             name={["payment", "description"]}
@@ -182,7 +170,6 @@ export function Payments() {
           </Form.Item>
 
           <Form.Item
-            hasFeedback
             label="Account Number"
             htmlFor="accountNumber"
             name={["payment", "accountNumber"]}
@@ -579,15 +566,13 @@ export function Payments() {
                 </Flex>
 
                 <Flex vertical gap={4}>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={isSubmitting}
-                    disabled={!isSubmittable}
-                    style={{ boxShadow: "none" }}
+                  <SubmitButton
+                    form={form}
+                    fields={fields}
+                    isSubmitting={isSubmitting}
                   >
                     Submit Payment
-                  </Button>
+                  </SubmitButton>
 
                   <Flex
                     vertical
