@@ -91,7 +91,7 @@ export function Payments() {
         initialValues={{ feeMode: "merchant" }}
         onFinish={data => handleSubmit(data)}
         className={styles.formContainer}
-        requiredMark={false}
+        requiredMark={"optional"}
       >
         <Flex vertical flex={1} className={styles.paymentDetailsForm}>
           <Form.Item
@@ -113,7 +113,7 @@ export function Payments() {
             />
           </Form.Item>
 
-          <Form.Item hasFeedback label="Fee mode">
+          <Form.Item hasFeedback required label="Fee mode">
             <Flex
               gap={16}
               className={styles.feeModeContainer}
