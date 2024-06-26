@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ZodError } from "zod";
 
@@ -30,7 +30,6 @@ const CURRENT_FUNDS = 500;
 export function Payments() {
   const navigate = useNavigate();
   const [form] = Form.useForm<ManualPaymentType>();
-  const fields = Form.useWatch([], form);
 
   const [selectedFee, setSelectedFee] = useState<FeeModeType>("merchant");
 
@@ -38,11 +37,28 @@ export function Payments() {
   const [sameAddress, setSameAddress] = useState(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormValid, setIsFormValid] = useState<boolean | undefined>(false);
 
   const states = usaStates.map(state => ({
     label: state.name,
     value: state.name.toLowerCase(),
   }));
+
+  const validateForm = useCallback(() => {
+    const values = form.getFieldsValue();
+
+    const data = {
+      ...values,
+      payment: { ...values.payment, feeMode: selectedFee },
+      billingAddress: sameAddress ? values.homeAddress : values.billingAddress,
+    };
+
+    const { error } = manualPaymentSchema.safeParse(data);
+
+    if (error) return setIsFormValid(false);
+
+    setIsFormValid(true);
+  }, [form, selectedFee, sameAddress]);
 
   async function handleSubmit(formData: ManualPaymentType) {
     try {
@@ -79,6 +95,10 @@ export function Payments() {
     }
   }
 
+  useEffect(() => {
+    validateForm();
+  }, [validateForm, sameAddress]);
+
   return (
     <Layout className={styles.rootFormContainer}>
       <Typography.Title className={styles.title} editable={false} level={2}>
@@ -89,6 +109,7 @@ export function Payments() {
         form={form}
         layout="vertical"
         initialValues={{ feeMode: "merchant" }}
+        onFieldsChange={validateForm}
         onFinish={data => handleSubmit(data)}
         className={styles.formContainer}
         requiredMark={"optional"}
@@ -483,29 +504,27 @@ export function Payments() {
                       <Form.Item
                         hasFeedback
                         noStyle
-                        name="billingAddress1"
+                        name={["billingAddress", "addresses", "line1"]}
                         rules={[{ required: true }]}
                       >
                         <Input
                           placeholder="Address line 1"
-                          value={form.getFieldValue("billingAddress1")}
+                          value={form.getFieldValue("line1")}
                           onChange={event =>
-                            form.setFieldValue(
-                              "billingAddress1",
-                              event.target.value
-                            )
+                            form.setFieldValue("line1", event.target.value)
                           }
                         />
                       </Form.Item>
-                      <Form.Item noStyle hasFeedback name="billingAddress2">
+                      <Form.Item
+                        noStyle
+                        hasFeedback
+                        name={["billingAddress", "addresses", "line2"]}
+                      >
                         <Input
                           placeholder="Address line 2 (optional)"
-                          value={form.getFieldValue("billingAddress2")}
+                          value={form.getFieldValue("line2")}
                           onChange={event =>
-                            form.setFieldValue(
-                              "billingAddress2",
-                              event.target.value
-                            )
+                            form.setFieldValue("line2", event.target.value)
                           }
                         />
                       </Form.Item>
@@ -514,17 +533,14 @@ export function Payments() {
                         <Form.Item
                           hasFeedback
                           noStyle
-                          name="billingCity"
+                          name={["billingAddress", "city"]}
                           rules={[{ required: true }]}
                         >
                           <Input
                             placeholder="City"
-                            value={form.getFieldValue("billingCity")}
+                            value={form.getFieldValue("city")}
                             onChange={event =>
-                              form.setFieldValue(
-                                "billingCity",
-                                event.target.value
-                              )
+                              form.setFieldValue("city", event.target.value)
                             }
                             style={{ flex: 1 }}
                           />
@@ -532,15 +548,15 @@ export function Payments() {
 
                         <Form.Item
                           noStyle
-                          name="billingState"
+                          name={["billingAddress", "state"]}
                           rules={[{ required: true }]}
                         >
                           <Select
                             placeholder="State"
                             options={states}
-                            value={form.getFieldValue("billingState")}
+                            value={form.getFieldValue("state")}
                             onChange={value =>
-                              form.setFieldValue("billingState", value)
+                              form.setFieldValue("state", value)
                             }
                             style={{ flex: 1 }}
                           />
@@ -549,17 +565,14 @@ export function Payments() {
                         <Form.Item
                           hasFeedback
                           noStyle
-                          name="billingZipcode"
+                          name={["billingAddress", "zipcode"]}
                           rules={[{ required: true }]}
                         >
                           <Input
                             placeholder="Zipcode"
-                            value={form.getFieldValue("billingZipcode")}
+                            value={form.getFieldValue("zipcode")}
                             onChange={event =>
-                              form.setFieldValue(
-                                "billingZipcode",
-                                event.target.value
-                              )
+                              form.setFieldValue("zipcode", event.target.value)
                             }
                             style={{ flex: 1 }}
                           />
@@ -571,9 +584,8 @@ export function Payments() {
 
                 <Flex vertical gap={4}>
                   <SubmitButton
-                    form={form}
-                    fields={fields}
                     isSubmitting={isSubmitting}
+                    isDisabled={!isFormValid}
                   >
                     Submit Payment
                   </SubmitButton>
