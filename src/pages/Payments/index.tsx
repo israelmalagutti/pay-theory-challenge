@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ZodError } from "zod";
 
-import { manualPaymentSchema, ManualPaymentType } from "@/dtos";
+import { FeeModeType, ManualPaymentType, manualPaymentSchema } from "@/dtos";
 
 import { usaStates } from "@/utils";
 
@@ -30,11 +30,12 @@ const CURRENT_FUNDS = 500;
 export function Payments() {
   const navigate = useNavigate();
   const [form] = Form.useForm<ManualPaymentType>();
-
   const fields = Form.useWatch([], form);
 
+  const [selectedFee, setSelectedFee] = useState<FeeModeType>("merchant");
+
   const [paymentMethod, setPaymentMethod] = useState<"card" | "ach">("card");
-  const [sameAddress, setSameAddress] = useState(false);
+  const [sameAddress, setSameAddress] = useState(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,8 +53,14 @@ export function Payments() {
 
       const data: ManualPaymentType = {
         ...formData,
+        payment: {
+          ...formData.payment,
+          feeMode: selectedFee,
+        },
         billingAddress: sameAddress ? homeAddress : billingAddress,
       };
+
+      console.log({ data });
 
       if (Number(payment.amount) > CURRENT_FUNDS) {
         throw new Error("Insufficient Funds");
@@ -61,7 +68,7 @@ export function Payments() {
 
       const parsedData = manualPaymentSchema.parse(data);
 
-      console.log({ parsedData });
+      console.log({ data: parsedData });
 
       message.success("Payment Succeeded");
       navigate("/feedback");
@@ -90,10 +97,11 @@ export function Payments() {
       >
         <Flex vertical flex={1} className={styles.paymentDetailsForm}>
           <Form.Item
+            hasFeedback
             label="Amount"
             htmlFor="paymentAmount"
             name={["payment", "amount"]}
-            rules={[{ required: true, message: "Please enter an amount." }]}
+            rules={[{ required: true }]}
           >
             <InputNumber
               id="paymentAmount"
@@ -107,43 +115,45 @@ export function Payments() {
             />
           </Form.Item>
 
-          <Form.Item
-            label="Fee mode"
-            name={["payment", "feeMode"]}
-            rules={[{ required: true, message: "Please select a fee mode." }]}
-          >
+          <Form.Item hasFeedback label="Fee mode">
             <Flex
               gap={16}
+              className={styles.feeModeContainer}
               style={{ padding: "0.625rem 0", marginTop: "0.25rem" }}
             >
-              <Checkbox
-                className={styles.checkbox}
-                checked={form.getFieldValue("feeMode") === "merchant"}
-                onClick={() => form.setFieldValue("feeMode", "merchant")}
+              <Form.Item
+                noStyle
+                className={styles.checkboxContainer}
+                style={{ margin: 0, padding: 0 }}
               >
-                Merchant Pays Fee
-              </Checkbox>
+                <Checkbox
+                  className={styles.checkbox}
+                  checked={selectedFee === "merchant"}
+                  onClick={() => setSelectedFee("merchant")}
+                  onChange={() => console.log("merchant")}
+                >
+                  Merchant Pays Fee
+                </Checkbox>
+              </Form.Item>
 
-              <Checkbox
-                className={styles.checkbox}
-                checked={form.getFieldValue("feeMode") === "payor"}
-                onClick={() => form.setFieldValue("feeMode", "payor")}
-              >
-                Payor Pays Fee
-              </Checkbox>
+              <Form.Item noStyle className={styles.checkboxContainer}>
+                <Checkbox
+                  className={styles.checkbox}
+                  checked={selectedFee === "payor"}
+                  onClick={() => setSelectedFee("payor")}
+                >
+                  Payor Pays Fee
+                </Checkbox>
+              </Form.Item>
             </Flex>
           </Form.Item>
 
           <Form.Item
+            hasFeedback
             label="Payment Name"
             htmlFor="paymentName"
             name={["payment", "name"]}
-            rules={[
-              {
-                required: true,
-                message: "Please enter a name for your payment.",
-              },
-            ]}
+            rules={[{ required: true }]}
           >
             <Input
               id="paymentName"
@@ -152,7 +162,6 @@ export function Payments() {
               onChange={event => form.setFieldValue("name", event.target.value)}
             />
           </Form.Item>
-
           <Form.Item
             label="Payment Description"
             htmlFor="paymentDescription"
@@ -168,7 +177,6 @@ export function Payments() {
               }
             />
           </Form.Item>
-
           <Form.Item
             label="Account Number"
             htmlFor="accountNumber"
@@ -491,9 +499,7 @@ export function Payments() {
                           }
                         />
                       </Form.Item>
-                      <Form.Item noStyle name="billingAddress2">
-                        {" "}
-                        hasFeedback
+                      <Form.Item noStyle hasFeedback name="billingAddress2">
                         <Input
                           placeholder="Address line 2 (optional)"
                           value={form.getFieldValue("billingAddress2")}

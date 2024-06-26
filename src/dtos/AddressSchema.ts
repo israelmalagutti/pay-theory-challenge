@@ -15,7 +15,7 @@ export const AddressSchema = z.object({
   state: z.string().min(1, {
     message: "Please enter a valid state for your address.",
   }),
-  zipCode: ZipcodeSchema,
+  zipcode: ZipcodeSchema,
 });
 
 export type AddressType = z.infer<typeof AddressSchema>;

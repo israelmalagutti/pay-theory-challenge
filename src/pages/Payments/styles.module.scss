@@ -15,10 +15,21 @@
     gap: 1.5rem;
 
     .paymentDetailsForm {
-      .checkbox {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .feeModeContainer {
+        .checkboxContainer {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+  
+          margin: 0;
+          padding: 0;
+  
+          .checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+        }
       }
 
       .inputOptional {

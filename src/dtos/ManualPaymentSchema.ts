@@ -12,7 +12,7 @@ export const manualPaymentSchema = z.object({
   homeAddress: AddressSchema,
 
   contact: ContactSchema,
-  cardInfo: CardInformationSchema,
+  card: CardInformationSchema,
 });
 
 export type ManualPaymentType = z.infer<typeof manualPaymentSchema>;
