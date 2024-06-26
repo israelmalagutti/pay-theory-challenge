@@ -24,6 +24,7 @@ import {
 import styles from "./styles.module.scss";
 
 import { CreditCardOutlined } from "@ant-design/icons";
+import clsx from "clsx";
 
 const CURRENT_FUNDS = 500;
 
@@ -233,7 +234,10 @@ export function Payments() {
             <Button
               type={(paymentMethod === "card" && "primary") || "text"}
               onClick={() => setPaymentMethod("card")}
-              className={styles.selectionButton}
+              className={clsx(
+                paymentMethod === "ach" && styles.selectionButton
+              )}
+              style={{ flex: 1 }}
             >
               Card
             </Button>
@@ -241,7 +245,10 @@ export function Payments() {
             <Button
               type={(paymentMethod === "ach" && "primary") || "text"}
               onClick={() => setPaymentMethod("ach")}
-              className={styles.selectionButton}
+              className={clsx(
+                paymentMethod === "card" && styles.selectionButton
+              )}
+              style={{ flex: 1 }}
             >
               ACH
             </Button>
