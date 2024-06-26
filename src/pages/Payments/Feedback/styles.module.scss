@@ -18,5 +18,16 @@
 
     align-items: center;
     justify-content: center;
+
+    .result{
+      :global .ant-result-title {
+        font-weight: 700;
+      }
+
+      :global .ant-result-subtitle {
+        color: var(--ant-color-text-base);
+        font-size: 1rem;
+      }
+    }
   }
 }

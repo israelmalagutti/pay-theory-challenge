@@ -16,6 +16,7 @@ export function PaymentFeedback() {
           status="success"
           title="Payment has been submitted."
           subTitle="A copy of the receipt has been sent to the payor."
+          className={styles.result}
         />
       </Card>
     </Flex>
