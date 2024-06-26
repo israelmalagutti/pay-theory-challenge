@@ -1,12 +1,12 @@
 import { Button, Layout, Menu } from "antd";
-import { ItemType, MenuItemType } from "antd/es/menu/interface";
 import { PlusCircleOutlined } from "@ant-design/icons";
 
 import styles from "./styles.module.scss";
+import { useNavigate } from "react-router-dom";
 
 const { Sider } = Layout;
 
-const sidebarItems: ItemType<MenuItemType>[] | undefined = [
+const sidebarItems = [
   {
     label: "Dashboard",
   },
@@ -29,6 +29,16 @@ const sidebarItems: ItemType<MenuItemType>[] | undefined = [
 }));
 
 export function Sidebar() {
+  const navigate = useNavigate();
+
+  function handleNavigation({ key }: { key: string }) {
+    const routeKey = Number(key);
+
+    const route = `${sidebarItems[routeKey]?.label.toLowerCase()}`;
+
+    navigate(route);
+  }
+
   return (
     <Sider width={168} className={styles.sidebar}>
       <div className={styles.buttonContainer}>
@@ -36,6 +46,7 @@ export function Sidebar() {
           icon={<PlusCircleOutlined size={16} />}
           className={styles.button}
           style={{ boxShadow: "none" }}
+          onClick={() => navigate("/payments")}
         >
           Create a Payment
         </Button>
@@ -43,6 +54,7 @@ export function Sidebar() {
 
       <Menu
         defaultSelectedKeys={["1"]}
+        onSelect={handleNavigation}
         className={styles.menu}
         mode="vertical"
         items={sidebarItems}

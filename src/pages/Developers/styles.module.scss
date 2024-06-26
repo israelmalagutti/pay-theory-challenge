@@ -1,0 +1,22 @@
+.container {
+  height: 100%;
+  
+  display: flex;
+  flex: 1;
+
+  padding: 1.5rem;
+
+  .title {
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    align-items: center;
+    justify-content: center;
+  }
+}

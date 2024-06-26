@@ -60,8 +60,6 @@ export function Payments() {
         billingAddress: sameAddress ? homeAddress : billingAddress,
       };
 
-      console.log({ data });
-
       if (Number(payment.amount) > CURRENT_FUNDS) {
         throw new Error("Insufficient Funds");
       }
