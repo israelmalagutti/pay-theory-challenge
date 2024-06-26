@@ -1,19 +1,18 @@
 import { z } from "zod";
 
+import { ZipcodeSchema } from "./ZipcodeSchema";
+
 export const CardInformationSchema = z.object({
   name: z.string().min(1, {
-    message: "Invalid name. Please enter the name from your card for payment.",
+    message: "Please enter a valid name from your card for this payment.",
   }),
   number: z.string().min(1, {
-    message: "Invalid card number. Please enter your card number for payment.",
+    message: "Please enter a valid card number for this payment.",
   }),
   expirationDate: z.string().min(1, {
-    message:
-      "Invalid expiration date. Please enter your expiration date for payment.",
+    message: "Please enter a valid expiration date for this payment.",
   }),
-  zipcode: z.string().min(1, {
-    message: "Invalid zipcode. Please enter your zipcode for payment.",
-  }),
+  zipcode: ZipcodeSchema,
 });
 
 export type CardInformationType = z.infer<typeof CardInformationSchema>;
