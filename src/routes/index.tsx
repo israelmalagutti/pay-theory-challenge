@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, redirect } from "react-router-dom";
 
 import { CustomLayout } from "@/components";
 
@@ -10,6 +10,11 @@ export const router = createBrowserRouter([
     path: "/",
     element: <CustomLayout />,
     children: [
+      {
+        index: true,
+        path: "/",
+        loader: async () => redirect("/payments"),
+      },
       {
         path: "/payments",
         element: <Payments />,
