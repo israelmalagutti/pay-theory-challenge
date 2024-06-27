@@ -1,9 +1,10 @@
 import { useLayoutEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
+import { Layout } from "antd";
 
+import { CustomBreadcrumb } from "../CustomBreadcrumb";
 import { Header } from "../Header";
 import { Sidebar } from "../Sidebar";
-import { Breadcrumb, Layout } from "antd";
 
 import styles from "./styles.module.scss";
 
@@ -35,29 +36,8 @@ export function CustomLayout() {
         <Sidebar />
 
         <Content className={styles.content}>
-          <Breadcrumb
-            items={[
-              {
-                href: "/payments",
-                title: "Payments",
-              },
-              {
-                href: "/create-payment",
-                title: "Create a Payment",
-              },
-              {
-                href: "/",
-                title: "Accept a Manual Payment",
-              },
-            ]}
-            className={styles.breadcrumb}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              height: "fit-content",
-              width: "100%",
-            }}
-          ></Breadcrumb>
+          <CustomBreadcrumb />
+
           <Outlet />
         </Content>
       </Layout>
