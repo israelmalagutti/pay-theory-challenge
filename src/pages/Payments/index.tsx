@@ -317,7 +317,6 @@ export function Payments() {
                       hasFeedback
                       noStyle
                       name={["contact", "phone"]}
-                      rules={[{ required: true }]}
                     >
                       <Input
                         placeholder="Phone number (optional)"
