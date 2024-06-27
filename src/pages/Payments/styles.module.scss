@@ -31,51 +31,6 @@
           }
         }
       }
-
-      .inputOptional {
-        display: flex; gap: 0.125rem
-      }
-    }
-
-    .paymentCard{
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-
-      .paymentSelectionContainer {
-        display: flex;
-        padding: 0.125rem;
-        gap: 0.125rem !important;
-
-        border: 1px solid #ececec;
-        border-radius: 0.625rem;
-
-        .selectionButton {
-          width: "100%";
-          flex: 1;
-
-          box-shadow: none !important;
-
-          &:hover {
-            background: transparent;
-            border: 1px solid #ececec
-          }
-        }
-      }
-
-      .paymentMethodForm {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-
-        padding-top: 1.5rem;
-        gap: 1.5rem;
-        
-        .label {
-          font-weight: 700;
-          margin-bottom: 0;
-        }
-      }
     }
   }
 }
