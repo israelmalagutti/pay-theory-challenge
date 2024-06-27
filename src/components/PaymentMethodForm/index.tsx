@@ -3,7 +3,7 @@ import clsx from "clsx";
 
 import { usaStates } from "@/utils";
 
-import { ManualPaymentType } from "@/dtos";
+import { ManualPaymentType, PaymentMethodType } from "@/dtos";
 
 import { SubmitButton } from "../SubmitButton";
 import {
@@ -19,8 +19,8 @@ import {
 } from "antd";
 
 import styles from "./styles.module.scss";
-import { CreditCardOutlined } from "@ant-design/icons";
 import { ContactInformationForm } from "../ContactInformationForm";
+import { CardInformationForm } from "../CardInformationForm";
 import { HomeAddressForm } from "../HomeAddressForm";
 
 type Props = {
@@ -43,7 +43,7 @@ export function PaymentMethodForm({
   isFormValid,
   isSubmitting,
 }: Props) {
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "ach">("card");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("card");
 
   const states = usaStates.map(state => ({
     label: state.name,
@@ -93,80 +93,7 @@ export function PaymentMethodForm({
 
             <HomeAddressForm form={form} states={states} />
 
-            <Flex vertical gap={4}>
-              <Title level={5} className={styles.label}>
-                Card Information
-              </Title>
-
-              <Flex vertical gap={8}>
-                <Form.Item
-                  hasFeedback
-                  noStyle
-                  required
-                  name={["card", "name"]}
-                  rules={[{ required: true }]}
-                >
-                  <Input
-                    placeholder="Name on card"
-                    value={form.getFieldValue("name")}
-                    onChange={event =>
-                      form.setFieldValue("name", event.target.value)
-                    }
-                  />
-                </Form.Item>
-
-                <Flex gap={8}>
-                  <Form.Item
-                    noStyle
-                    required
-                    name={["card", "number"]}
-                    rules={[{ required: true }]}
-                  >
-                    <Input
-                      placeholder="Card number"
-                      value={form.getFieldValue("number")}
-                      onChange={event =>
-                        form.setFieldValue("number", event.target.value)
-                      }
-                      suffix={<CreditCardOutlined size={16} />}
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    hasFeedback
-                    noStyle
-                    required
-                    name={["card", "expirationDate"]}
-                    rules={[{ required: true }, { max: 7 }]}
-                  >
-                    <Input
-                      placeholder="MM/YYYY"
-                      value={form.getFieldValue("expirationDate")}
-                      onChange={event =>
-                        form.setFieldValue("expirationDate", event.target.value)
-                      }
-                      maxLength={7}
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    hasFeedback
-                    noStyle
-                    required
-                    name={["card", "cvv"]}
-                    rules={[{ required: true }]}
-                  >
-                    <Input
-                      placeholder="CVV"
-                      value={form.getFieldValue("cvv")}
-                      onChange={event =>
-                        form.setFieldValue("cvv", event.target.value)
-                      }
-                    />
-                  </Form.Item>
-                </Flex>
-              </Flex>
-            </Flex>
+            <CardInformationForm form={form} />
 
             <Flex vertical gap={4}>
               <Title level={5} className={styles.label}>
