@@ -181,6 +181,7 @@ export function Payments() {
               onChange={event => form.setFieldValue("name", event.target.value)}
             />
           </Form.Item>
+
           <Form.Item
             label="Payment Description"
             htmlFor="paymentDescription"
@@ -196,6 +197,7 @@ export function Payments() {
               }
             />
           </Form.Item>
+
           <Form.Item
             label="Account Number"
             htmlFor="accountNumber"
@@ -472,14 +474,14 @@ export function Payments() {
                         hasFeedback
                         noStyle
                         required
-                        name={["card", "zipcode"]}
+                        name={["card", "cvv"]}
                         rules={[{ required: true }]}
                       >
                         <Input
-                          placeholder="Zipcode"
-                          value={form.getFieldValue("zipcode")}
+                          placeholder="CVV"
+                          value={form.getFieldValue("cvv")}
                           onChange={event =>
-                            form.setFieldValue("zipcode", event.target.value)
+                            form.setFieldValue("cvv", event.target.value)
                           }
                         />
                       </Form.Item>
