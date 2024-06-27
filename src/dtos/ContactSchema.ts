@@ -10,12 +10,7 @@ export const ContactSchema = z.object({
   email: z.string().email({
     message: "Invalid email. Please enter a valid email for your contact.",
   }),
-  phoneNumber: z
-    .string()
-    .min(11, {
-      message: "Invalid phone number. Please enter a name for your contact.",
-    })
-    .nullish(),
+  phone: z.string().nullish(),
 });
 
 export type ContactType = z.infer<typeof ContactSchema>;

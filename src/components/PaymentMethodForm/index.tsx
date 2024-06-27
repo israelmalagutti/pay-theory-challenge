@@ -20,6 +20,7 @@ import {
 
 import styles from "./styles.module.scss";
 import { CreditCardOutlined } from "@ant-design/icons";
+import { ContactInformationForm } from "../ContactInformationForm";
 
 type Props = {
   form: FormInstance<ManualPaymentType>;
@@ -87,74 +88,7 @@ export function PaymentMethodForm({
       <Flex className={styles.paymentMethodForm}>
         {paymentMethod === "card" ? (
           <>
-            <Flex vertical gap={4}>
-              <Title level={5} className={styles.label}>
-                Contact Information
-              </Title>
-
-              <Flex vertical gap={8}>
-                <Flex gap={8}>
-                  <Form.Item
-                    hasFeedback
-                    noStyle
-                    name={["contact", "firstName"]}
-                    rules={[{ required: true }]}
-                  >
-                    <Input
-                      autoCapitalize="words"
-                      value={form.getFieldValue("firstName")}
-                      onChange={event =>
-                        form.setFieldValue("firstName", event.target.value)
-                      }
-                      placeholder="First name"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    hasFeedback
-                    noStyle
-                    name={["contact", "lastName"]}
-                    rules={[{ required: true }]}
-                  >
-                    <Input
-                      // addonAfter={<XCircleOutlined />}
-                      autoCapitalize="words"
-                      value={form.getFieldValue("lastName")}
-                      onChange={event =>
-                        form.setFieldValue("lastName", event.target.value)
-                      }
-                      placeholder="Last name"
-                    />
-                  </Form.Item>
-                </Flex>
-
-                <Form.Item
-                  hasFeedback
-                  noStyle
-                  name={["contact", "email"]}
-                  rules={[{ required: true }]}
-                >
-                  <Input
-                    placeholder="Email address"
-                    value={form.getFieldValue("email")}
-                    onChange={event =>
-                      form.setFieldValue("email", event.target.value)
-                    }
-                  />
-                </Form.Item>
-
-                <Form.Item hasFeedback noStyle name={["contact", "phone"]}>
-                  <Input
-                    placeholder="Phone number (optional)"
-                    value={form.getFieldValue("phone")}
-                    onChange={event =>
-                      form.setFieldValue("phone", event.target.value)
-                    }
-                  />
-                </Form.Item>
-              </Flex>
-            </Flex>
-
+            <ContactInformationForm form={form} />
             <Flex vertical gap={4}>
               <Title level={5} className={styles.label}>
                 Home Address
