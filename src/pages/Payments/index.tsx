@@ -150,7 +150,6 @@ export function Payments() {
                   className={styles.checkbox}
                   checked={selectedFee === "merchant"}
                   onClick={() => setSelectedFee("merchant")}
-                  onChange={() => console.log("merchant")}
                 >
                   Merchant Pays Fee
                 </Checkbox>
@@ -313,11 +312,7 @@ export function Payments() {
                       />
                     </Form.Item>
 
-                    <Form.Item
-                      hasFeedback
-                      noStyle
-                      name={["contact", "phone"]}
-                    >
+                    <Form.Item hasFeedback noStyle name={["contact", "phone"]}>
                       <Input
                         placeholder="Phone number (optional)"
                         value={form.getFieldValue("phone")}
