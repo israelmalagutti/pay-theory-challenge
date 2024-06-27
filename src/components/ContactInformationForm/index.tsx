@@ -9,7 +9,7 @@ const { Title } = Typography;
 export function ContactInformationForm({ form }: ContactInformationFormProps) {
   return (
     <Flex vertical gap={4}>
-      <Title level={5} className={styles.label}>
+      <Title level={5} className={styles.title}>
         Contact Information
       </Title>
 
